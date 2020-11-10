@@ -26,7 +26,7 @@ BASE_NORMAL_COLOR="$(rgb $(($R + $PLUSMINUS)) $(($G + $PLUSMINUS)) $(($B + $PLUS
 
 
 create_theme() {
-  [ -d "$THEME_DIR/gtk-2.0" ] && mkdir -p "$THEME_DIR/gtk-2.0"
+  [ ! -d "$THEME_DIR/gtk-2.0" ] && mkdir -p "$THEME_DIR/gtk-2.0"
   sed 's@#d9d7d6@#'"$BG_ACTIVE_COLOR"'@g
   ;s@#eeeeec@#'"$BG_INSENSITIVE_COLOR"'@g
   ;s@#ffffff@#'"$BASE_NORMAL_COLOR"'@g' \
