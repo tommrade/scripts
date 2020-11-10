@@ -1,0 +1,53 @@
+#!/bin/bash
+
+R="$1"
+G="$2"
+B="$3"
+PLUSMINUS=32
+
+for i in $R $G $B ; do
+  (($i > $PLUSMINUS && $i < ((255 - $PLUSMINUS)) )) \
+    || ( echo "Not in range!" && exit 1 )
+done || exit
+
+rgb() {
+  r=$(printf '%02X\n' "$1")
+  g=$(printf '%02X\n' "$2")
+  b=$(printf '%02X\n' "$3")
+  FINAL="$r$g$b"
+  [[ "$FINAL" =~ ^[0-9A-F]{6}$ ]] && printf "$FINAL" || printf 'FFFFFF'
+}
+
+THEME_DIR="$HOME/.themes/colorful"
+
+BG_ACTIVE_COLOR="$(rgb $R $G $B)"
+BG_INSENSITIVE_COLOR="$(rgb $(($R - $PLUSMINUS)) $(($G - $PLUSMINUS)) $(($B - $PLUSMINUS)) )"
+BASE_NORMAL_COLOR="$(rgb $(($R + $PLUSMINUS)) $(($G + $PLUSMINUS)) $(($B + $PLUSMINUS)) )"
+
+
+create_theme() {
+  [ -d "$THEME_DIR/gtk-2.0" ] && mkdir -p "$THEME_DIR/gtk-2.0"
+  sed 's@#d9d7d6@#'"$BG_ACTIVE_COLOR"'@g
+  ;s@#eeeeec@#'"$BG_INSENSITIVE_COLOR"'@g
+  ;s@#ffffff@#'"$BASE_NORMAL_COLOR"'@g' \
+  /usr/share/themes/Xfce/gtk-2.0/gtkrc > "$THEME_DIR/gtk-2.0/gtkrc"
+}
+
+set_theme() {
+  # Reload, let it warm up for a safe application without glitching.
+  xfconf-query -c xsettings -p /Net/ThemeName -s Xfce
+  sleep 1
+  xfconf-query -c xsettings -p /Net/ThemeName -s colorful
+}
+
+set_panel_colors() {
+  xfconf-query -c xfce4-panel -p /panels/panel-1/background-color -t uint -s $(($R * 255)) -t uint -s $(($G * 255)) -t uint -s $(($B * 255)) --create
+  xfconf-query -c xfce4-panel -p /panels/panel-1/background-style -t uint -s 1 --create
+}
+
+set_desktop_color() {
+  xfconf-query -c xfce4-desktop -p /backdrop/screen0/monitorVGA-0/workspace0/color1 -t uint -s $(($R * 255)) -t uint -s $(($G * 255)) -t uint -s $(($B * 255)) --create
+}
+
+create_theme && set_theme && set_panel_colors && set_desktop_color
+

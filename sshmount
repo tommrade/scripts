@@ -1,0 +1,7 @@
+#!/bin/bash
+
+mountpoint="$HOME/mnt/${1#*@}"
+[ -d "$mountpoint" ] || mkdir -p "$mountpoint"
+umount "$mountpoint"
+sshfs "$1:/" "$mountpoint" -o allow_other -o default_permissions -o reconnect -o transform_symlinks
+
